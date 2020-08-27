@@ -126,6 +126,11 @@ public class JCRC {
                 System.out.println();
                 System.out.println("Результат расчёта CRC " + CRC8_All[i].getCRC_name() + " значениея 0x12 0x34 0x56 0x78 0x09 равен 0х" + Long.toHexString(CRC8_All[i].CRC8Count(buff, buff.length)));
             }
+
+            long a = 0xffffffff9823b6ffL;
+            a = a & 0xFFFF_FFFFL;
+            System.out.println();
+            System.out.println(CRC8.toString());
         }
         catch(IllegalArgumentException e)
         {

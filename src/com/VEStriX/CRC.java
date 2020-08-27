@@ -1,5 +1,9 @@
 package com.VEStriX;
 
+import java.util.Objects;
+
+//import static sun.jvm.hotspot.code.CompressedStream.L;
+
 public class CRC {
     private final String    CRC_name;           // name of CRC function
     private final int       CRC_Width;          // Width of CRC: 8, 16, 32 or 64 bit
@@ -229,15 +233,16 @@ public class CRC {
     {
         long Value = 0;
         long Mask = ((1 << this.CRC_Width) - 1);
-        long TopBit = (1 << (this.CRC_Width - 1));
+        long TopBit = (long) (1 << ((long) this.CRC_Width - 1L));
         if(!this.CRC_RefIn) {
             for (long i = 0; i < 256; i++) {
 
-                Value = i << (this.CRC_Width - 8);
+                Value = (i << (this.CRC_Width - 8)) & 0xFFFF_FFFFL;
 
                 for (int j = 0; j < 8; j++) {
-                    if ((Value & TopBit) == TopBit) {
-                        Value = (Value << 1) ^ this.CRC_Poly;
+                    if((Value & 2_0000_0000_0000L) == 2_0000_0000_0000L){
+                    //if ((Value & TopBit) == TopBit) {
+                        Value = ((Value << 1) ^ this.CRC_Poly) & 0xFFFF_FFFFL;
                     } else
                         Value <<= 1;
 
@@ -250,16 +255,48 @@ public class CRC {
         if(this.CRC_RefIn) {
             for (long i = 0; i < 256; i++) {
 
-                Value = i;
+                Value = i & 0xFFFF_FFFFL;
 
                 for (int j = 8; j > 0; j--) {
                     if ((Value & 1) == 1) {
-                        Value = (Value >> 1) ^ this.CRC_Poly_Reverse;
+                        Value = ((Value >> 1) ^ this.CRC_Poly_Reverse) & 0xFFFF_FFFFL;
+                        Value = Value;
                     } else
-                        Value >>= 1;
+                        Value = (Value >> 1) & 0xFFFF_FFFFL;
+                        Value = Value & 0xFFFF_FFFFL;
                 }
-                this.CRC32_R_Table[(int)Reverse(i,8)] = Reverse(Value, this.CRC_Width);
+                this.CRC32_R_Table[(int)Reverse(i,8)] = Reverse(Value, this.CRC_Width) & 0xFFFF_FFFFL;
             }
         }
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if(this == obj) return true;
+        if(obj == null || getClass()!= obj.getClass()) return false;
+        CRC crc = (CRC) obj;
+        return this.CRC_name == crc.getCRC_name() &&
+                this.CRC_Width == crc.getCRC_Width() &&
+                this.CRC_Poly == crc.getCRC_Poly() &&
+                this.CRC_RefIn == crc.getCRC_RefIn() &&
+                this.CRC_RefOut == crc.getCRC_RefOut() &&
+                this.CRC_XorOut == crc.getCRC_XorOut();
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(this.CRC_name,this.CRC_Width,this.CRC_Poly,this.CRC_RefIn,this.CRC_RefOut,this.CRC_XorOut);
+    }
+
+    @Override
+    public String toString(){
+        return "CRC algorithm: " + this.CRC_name + ".\n" +
+                "Parametrs: Width - " + this.CRC_Width +
+                "; Polynomial - 0x" + Long.toHexString(this.CRC_Poly) +
+                "; Reflected Input - " + Boolean.toString(this.CRC_RefIn).toUpperCase() +
+                "; Reflected Output - " + Boolean.toString(this.CRC_RefOut).toUpperCase() +
+                "; XOR output - 0x" + Long.toHexString(this.CRC_XorOut) + ".";
     }
 }
